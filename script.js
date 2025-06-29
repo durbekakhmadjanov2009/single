@@ -1,4 +1,4 @@
-
+// Tarjimalar obyekti
 const translations = {
     uz: {
         title: "CV tayyorlash – bir necha soniyada!",
@@ -10,6 +10,9 @@ const translations = {
         jobTitle: "Lavozim *",
         summary: "Qisqacha ma'lumot",
         photo: "Profil rasmi (ixtiyoriy)",
+        importPdf: "PDF CV yuklash (ixtiyoriy)",
+        importError: "PDF faylni o'qishda xato yuz berdi!",
+        importSuccess: "PDF muvaffaqiyatli yuklandi va ma'lumotlar to'ldirildi!",
         next: "Keyingi",
         back: "Orqaga",
         position: "Avval ishlagan lavozimingiz *",
@@ -56,18 +59,21 @@ const translations = {
         errorStorage: "Ma'lumotlarni saqlashda xato yuz berdi!"
     },
     en: {
-        title: "Create a CV – in just a few seconds!",
-        subtitle: "No design skills needed – just fill it out!",
+        title: "Create a CV – in seconds!",
+        subtitle: "No design skills needed – just fill in!",
         enterDetails: "Enter Your Details",
         successMessage: "CV successfully created!",
-        errorMessage: "Please fill out all required fields!",
+        errorMessage: "Please fill in all required fields!",
         fullName: "Full Name *",
         jobTitle: "Job Title *",
         summary: "Summary",
-        photo: "Profile Picture (optional)",
+        photo: "Profile Photo (optional)",
+        importPdf: "Upload PDF CV (optional)",
+        importError: "Error reading PDF file!",
+        importSuccess: "PDF successfully uploaded and data populated!",
         next: "Next",
         back: "Back",
-        position: "Previous Position *",
+        position: "Position *",
         company: "Company *",
         date: "Date *",
         description: "Description",
@@ -76,7 +82,7 @@ const translations = {
         institution: "Institution *",
         descriptionOptional: "Description (optional)",
         skills: "Professional Skills *",
-        languages: "Languages Known",
+        languages: "Languages",
         beginner: "Beginner",
         intermediate: "Intermediate",
         advanced: "Advanced",
@@ -96,7 +102,7 @@ const translations = {
         fontSize: "Font Size (px)",
         fontColor: "Text Color",
         backgroundSettings: "Background Settings",
-        backgroundColor: "Background Color",
+        backgroundColor: "General Background",
         headerBackground: "Header Background",
         preview: "Preview",
         cvPreview: "CV Preview",
@@ -106,23 +112,26 @@ const translations = {
         experience: "Experience",
         education: "Education",
         contact: "Contact",
-        errorModal: "Error opening the modal window!",
-        errorLibrary: "Libraries for PDF or image creation failed to load!",
+        errorModal: "Error opening modal window!",
+        errorLibrary: "Libraries for PDF or image creation not loaded!",
         errorStorage: "Error saving data!"
     },
     ru: {
-        title: "Создайте резюме за несколько секунд!",
-        subtitle: "Никаких навыков дизайна не требуется – просто заполните!",
+        title: "Создайте резюме – за секунды!",
+        subtitle: "Дизайнерские навыки не требуются – просто заполните!",
         enterDetails: "Введите ваши данные",
         successMessage: "Резюме успешно создано!",
         errorMessage: "Пожалуйста, заполните все обязательные поля!",
         fullName: "Полное имя *",
         jobTitle: "Должность *",
         summary: "Краткая информация",
-        photo: "Фотография профиля (необязательно)",
+        photo: "Фото профиля (необязательно)",
+        importPdf: "Загрузить PDF резюме (необязательно)",
+        importError: "Ошибка при чтении PDF файла!",
+        importSuccess: "PDF успешно загружен и данные заполнены!",
         next: "Далее",
         back: "Назад",
-        position: "Предыдущая должность *",
+        position: "Должность *",
         company: "Компания *",
         date: "Дата *",
         description: "Описание",
@@ -131,7 +140,7 @@ const translations = {
         institution: "Учебное заведение *",
         descriptionOptional: "Описание (необязательно)",
         skills: "Профессиональные навыки *",
-        languages: "Известные языки",
+        languages: "Языки",
         beginner: "Начальный",
         intermediate: "Средний",
         advanced: "Продвинутый",
@@ -151,7 +160,7 @@ const translations = {
         fontSize: "Размер шрифта (px)",
         fontColor: "Цвет текста",
         backgroundSettings: "Настройки фона",
-        backgroundColor: "Цвет фона",
+        backgroundColor: "Общий фон",
         headerBackground: "Фон заголовка",
         preview: "Предпросмотр",
         cvPreview: "Предпросмотр резюме",
@@ -162,7 +171,7 @@ const translations = {
         education: "Образование",
         contact: "Контакты",
         errorModal: "Ошибка при открытии модального окна!",
-        errorLibrary: "Не удалось загрузить библиотеки для создания PDF или изображения!",
+        errorLibrary: "Библиотеки для создания PDF или изображения не загружены!",
         errorStorage: "Ошибка при сохранении данных!"
     }
 };
@@ -183,7 +192,7 @@ const triggerDownload = (dataUrl, fileName, type) => {
 };
 
 // Global o‘zgaruvchilar
-let sectionOrder = ['summary', 'experience', 'education', 'contact', 'skills', 'languages'];
+let sectionOrder = ['summary', 'experience', 'education', 'skills', 'languages', 'contact'];
 let customization = {
     fontFamily: 'Inter',
     fontSize: 12,
@@ -199,7 +208,7 @@ let langCounter = 1;
 let isDarkMode = false;
 let currentLanguage = 'uz';
 
-// Debounce funksiyasi: tez-tez chaqiriladigan funksiyalarni optimallashtirish
+// Debounce funksiyasi
 const debounce = (func, wait) => {
     let timeout;
     return (...args) => {
@@ -279,9 +288,6 @@ const loadFormData = () => {
         if (formData.photo && cvPhotoPreview) {
             cvPhotoPreview.src = formData.photo;
             cvPhotoPreview.style.display = 'block';
-            if (cvPhotoPreview.nextElementSibling) {
-                cvPhotoPreview.nextElementSibling.style.display = 'none';
-            }
         }
 
         const contactEmail = document.getElementById('contact-email');
@@ -387,10 +393,6 @@ const loadFormData = () => {
             document.body.classList.add('dark-mode');
             const toggleDarkMode = document.getElementById('toggleDarkMode');
             if (toggleDarkMode) toggleDarkMode.innerHTML = '<i class="fas fa-sun"></i>';
-        } else {
-            document.body.classList.remove('dark-mode');
-            const toggleDarkMode = document.getElementById('toggleDarkMode');
-            if (toggleDarkMode) toggleDarkMode.innerHTML = '<i class="fas fa-moon"></i>';
         }
 
         const fontFamily = document.getElementById('font-family');
@@ -421,7 +423,237 @@ const loadFormData = () => {
     }
 };
 
-// Tilni yangilash: interfeysdagi matnlarni tarjima qilish
+// PDF faylni o‘qish va maydonlarni to‘ldirish
+const importPdfCv = async (file) => {
+    try {
+        const pdfLoader = document.getElementById('pdfLoader');
+        if (pdfLoader) pdfLoader.style.display = 'block';
+
+        if (!window.pdfjsLib) {
+            throw new Error('pdf.js kutubxonasi yuklanmadi');
+        }
+
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await window.pdfjsLib.getDocument(arrayBuffer).promise;
+        let textContent = '';
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const text = await page.getTextContent();
+            textContent += text.items.map(item => item.str).join(' ') + ' ';
+        }
+
+        const parsedData = parsePdfContent(textContent);
+        populateFormFields(parsedData);
+
+        alert(translations[currentLanguage].importSuccess);
+        saveFormData();
+        updatePreview();
+    } catch (error) {
+        console.error('PDF import xatosi:', error);
+        alert(translations[currentLanguage].importError);
+    } finally {
+        const pdfLoader = document.getElementById('pdfLoader');
+        if (pdfLoader) pdfLoader.style.display = 'none';
+    }
+};
+
+// PDF matnini tahlil qilish
+const parsePdfContent = (text) => {
+    const data = {
+        fullName: '',
+        jobTitle: '',
+        summary: '',
+        email: '',
+        phone: '',
+        address: '',
+        experiences: [],
+        educations: [],
+        skills: [],
+        languages: []
+    };
+
+    const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+    let currentSection = '';
+
+    lines.forEach((line, index) => {
+        if (/contact|aloqa|контакты/i.test(line)) {
+            currentSection = 'contact';
+        } else if (/experience|tajriba|опыт/i.test(line)) {
+            currentSection = 'experience';
+        } else if (/education|ta'lim|образование/i.test(line)) {
+            currentSection = 'education';
+        } else if (/skills|ko'nikmalar|навыки/i.test(line)) {
+            currentSection = 'skills';
+        } else if (/languages|tillar|языки/i.test(line)) {
+            currentSection = 'languages';
+        } else {
+            if (currentSection === 'contact') {
+                if (/email|pochta|почта/i.test(line)) data.email = line.split(':')[1]?.trim() || line;
+                else if (/phone|telefon|телефон/i.test(line)) data.phone = line.split(':')[1]?.trim() || line;
+                else if (/address|manzil|адрес/i.test(line)) data.address = line.split(':')[1]?.trim() || line;
+            }
+            else if (currentSection === 'experience') {
+                if (/\d{4}\s*-\s*\d{4}/.test(line) || /present|hozirgi|настоящее/i.test(line)) {
+                    data.experiences.push({
+                        id: `exp-${expCounter++}`,
+                        position: lines[index - 1] || '',
+                        company: lines[index - 2] || '',
+                        date: line,
+                        description: ''
+                    });
+                } else if (data.experiences.length > 0) {
+                    const lastExp = data.experiences[data.experiences.length - 1];
+                    if (!lastExp.company && !lastExp.position) lastExp.company = line;
+                    else if (!lastExp.position) lastExp.position = line;
+                    else lastExp.description += line + ' ';
+                }
+            }
+            else if (currentSection === 'education') {
+                if (/\d{4}\s*-\s*\d{4}/.test(line) || /present|hozirgi|настоящее/i.test(line)) {
+                    data.educations.push({
+                        id: `edu-${eduCounter++}`,
+                        degree: lines[index - 1] || '',
+                        institution: lines[index - 2] || '',
+                        date: line,
+                        description: ''
+                    });
+                } else if (data.educations.length > 0) {
+                    const lastEdu = data.educations[data.educations.length - 1];
+                    if (!lastEdu.institution && !lastEdu.degree) lastEdu.institution = line;
+                    else if (!lastEdu.degree) lastEdu.degree = line;
+                    else lastEdu.description += line + ' ';
+                }
+            }
+            else if (currentSection === 'skills') {
+                data.skills.push({
+                    id: `skill-${skillCounter++}`,
+                    name: line,
+                    level: 'intermediate'
+                });
+            }
+            else if (currentSection === 'languages') {
+                data.languages.push({
+                    id: `lang-${langCounter++}`,
+                    name: line.split(' ')[0],
+                    level: line.includes('Native') || line.includes('Ona tili') ? 'native' : 'intermediate'
+                });
+            }
+            else if (!data.fullName && line.split(' ').length >= 2) {
+                data.fullName = line;
+            } else if (!data.jobTitle && line.split(' ').length <= 3) {
+                data.jobTitle = line;
+            } else if (!data.summary && line.length > 50) {
+                data.summary = line;
+            }
+        }
+    });
+
+    return data;
+};
+
+// Maydonlarni to‘ldirish
+const populateFormFields = (data) => {
+    const fullName = document.getElementById('fullName');
+    if (fullName) fullName.value = data.fullName;
+
+    const jobTitle = document.getElementById('jobTitle');
+    if (jobTitle) jobTitle.value = data.jobTitle;
+
+    const summary = document.getElementById('summary');
+    if (summary) summary.value = data.summary;
+
+    const contactEmail = document.getElementById('contact-email');
+    if (contactEmail) contactEmail.value = data.email;
+
+    const contactPhone = document.getElementById('contact-phone');
+    if (contactPhone) contactPhone.value = data.phone;
+
+    const contactAddress = document.getElementById('contact-address');
+    if (contactAddress) contactAddress.value = data.address;
+
+    const experienceFields = document.getElementById('experience-fields');
+    if (experienceFields) {
+        experienceFields.innerHTML = '';
+        data.experiences.forEach(exp => {
+            const newExperience = document.createElement('div');
+            newExperience.className = 'experience-item mb-4';
+            newExperience.dataset.id = exp.id;
+            newExperience.innerHTML = `
+                <div class="mb-3"><label class="form-label" data-i18n="position">${translations[currentLanguage].position}</label><input type="text" class="exp-position form-control" value="${exp.position}" placeholder="Masalan: Dasturchi" required></div>
+                <div class="mb-3"><label class="form-label" data-i18n="company">${translations[currentLanguage].company}</label><input type="text" class="exp-company form-control" value="${exp.company}" placeholder="Korxona nomi" required></div>
+                <div class="mb-3"><label class="form-label" data-i18n="date">${translations[currentLanguage].date}</label><input type="text" class="exp-date form-control" value="${exp.date}" placeholder="Masalan: 2020 - 2023" required></div>
+                <div class="mb-3"><label class="form-label" data-i18n="description">${translations[currentLanguage].description}</label><textarea class="exp-description form-control" placeholder="Ish tajribangiz haqida...">${exp.description}</textarea></div>
+                <button class="btn btn-danger btn-sm remove-experience"><i class="fas fa-times"></i></button>
+            `;
+            experienceFields.appendChild(newExperience);
+        });
+    }
+
+    const educationFields = document.getElementById('education-fields');
+    if (educationFields) {
+        educationFields.innerHTML = '';
+        data.educations.forEach(edu => {
+            const newEducation = document.createElement('div');
+            newEducation.className = 'education-item mb-4';
+            newEducation.dataset.id = edu.id;
+            newEducation.innerHTML = `
+                <div class="mb-3"><label class="form-label" data-i18n="degree">${translations[currentLanguage].degree}</label><input type="text" class="edu-degree form-control" value="${edu.degree}" placeholder="Masalan: Bakalavr" required></div>
+                <div class="mb-3"><label class="form-label" data-i18n="institution">${translations[currentLanguage].institution}</label><input type="text" class="edu-institution form-control" value="${edu.institution}" placeholder="Universitet nomi" required></div>
+                <div class="mb-3"><label class="form-label" data-i18n="date">${translations[currentLanguage].date}</label><input type="text" class="edu-date form-control" value="${edu.date}" placeholder="Masalan: 2016 - 2020" required></div>
+                <div class="mb-3"><label class="form-label" data-i18n="descriptionOptional">${translations[currentLanguage].descriptionOptional}</label><textarea class="edu-description form-control" placeholder="Qo'shimcha ma'lumotlar...">${edu.description}</textarea></div>
+                <button class="btn btn-danger btn-sm remove-education"><i class="fas fa-times"></i></button>
+            `;
+            educationFields.appendChild(newEducation);
+        });
+    }
+
+    const skillFields = document.getElementById('skill-fields');
+    if (skillFields) {
+        skillFields.innerHTML = '';
+        data.skills.forEach(skill => {
+            const newSkill = document.createElement('div');
+            newSkill.className = 'skill-item flex gap-3 mb-3 items-center';
+            newSkill.dataset.id = skill.id;
+            newSkill.innerHTML = `
+                <input type="text" class="skill-name form-control flex-1" value="${skill.name}" placeholder="Ko'nikma nomi" required>
+                <select class="skill-level form-select w-1/3">
+                    <option value="beginner" ${skill.level === 'beginner' ? 'selected' : ''} data-i18n="beginner">${translations[currentLanguage].beginner}</option>
+                    <option value="intermediate" ${skill.level === 'intermediate' ? 'selected' : ''} data-i18n="intermediate">${translations[currentLanguage].intermediate}</option>
+                    <option value="advanced" ${skill.level === 'advanced' ? 'selected' : ''} data-i18n="advanced">${translations[currentLanguage].advanced}</option>
+                    <option value="expert" ${skill.level === 'expert' ? 'selected' : ''} data-i18n="expert">${translations[currentLanguage].expert}</option>
+                </select>
+                <button class="btn btn-danger btn-sm remove-skill"><i class="fas fa-times"></i></button>
+            `;
+            skillFields.appendChild(newSkill);
+        });
+    }
+
+    const languageFields = document.getElementById('language-fields');
+    if (languageFields) {
+        languageFields.innerHTML = '';
+        data.languages.forEach(lang => {
+            const newLanguage = document.createElement('div');
+            newLanguage.className = 'language-item flex gap-3 mb-3 items-center';
+            newLanguage.dataset.id = lang.id;
+            newLanguage.innerHTML = `
+                <input type="text" class="lang-name form-control flex-1" value="${lang.name}" placeholder="Til nomi">
+                <select class="lang-level form-select w-1/3">
+                    <option value="beginner" ${lang.level === 'beginner' ? 'selected' : ''} data-i18n="beginner">${translations[currentLanguage].beginner}</option>
+                    <option value="intermediate" ${lang.level === 'intermediate' ? 'selected' : ''} data-i18n="intermediate">${translations[currentLanguage].intermediate}</option>
+                    <option value="advanced" ${lang.level === 'advanced' ? 'selected' : ''} data-i18n="advanced">${translations[currentLanguage].advanced}</option>
+                    <option value="native" ${lang.level === 'native' ? 'selected' : ''} data-i18n="native">${translations[currentLanguage].native}</option>
+                </select>
+                <button class="btn btn-danger btn-sm remove-language"><i class="fas fa-times"></i></button>
+            `;
+            languageFields.appendChild(newLanguage);
+        });
+    }
+};
+
+// Tilni yangilash
 const updateLanguage = () => {
     document.querySelectorAll('[data-i18n]').forEach(element => {
         const key = element.getAttribute('data-i18n');
@@ -462,6 +694,13 @@ const updatePreview = () => {
 
     const cvAddress = document.getElementById('cv-address');
     if (cvAddress) cvAddress.textContent = address;
+
+    const cvPhoto = document.getElementById('cv-photo');
+    const cvPhotoPreview = document.getElementById('cv-photo-preview');
+    if (cvPhoto && cvPhotoPreview) {
+        cvPhoto.src = cvPhotoPreview.src;
+        cvPhoto.style.display = cvPhotoPreview.src && cvPhotoPreview.src !== '' ? 'block' : 'none';
+    }
 
     const experienceItems = document.querySelectorAll('.experience-item');
     const cvExperience = document.getElementById('cv-experience');
@@ -715,6 +954,8 @@ const updateSectionOrder = () => {
         if (sectionEl) {
             if (['summary', 'experience', 'education'].includes(section) && customization.template !== 'classic') {
                 cvLeft.appendChild(sectionEl);
+            } else if (section === 'contact') {
+                cvRight.appendChild(sectionEl);
             } else {
                 cvRight.appendChild(sectionEl);
             }
@@ -724,7 +965,7 @@ const updateSectionOrder = () => {
     debouncedUpdatePreview();
 };
 
-// CV ni yuklab olish (PDF, JPG, PNG)
+// CV ni yuklab olish
 const downloadCv = async (format) => {
     if (!validateAllFields()) {
         showErrorAlert();
@@ -766,10 +1007,14 @@ const downloadCv = async (format) => {
             });
 
             const imgProps = pdf.getImageProperties(imgData);
-            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfWidth = 210; // A4 kengligi (mm)
             const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            let position = 0;
 
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.setFillColor(customization.bgColor);
+            pdf.rect(0, position, pdfWidth, pdfHeight, 'F');
+
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
             pdf.save(`${fileName}.pdf`);
         } else if (format === 'jpg') {
             triggerDownload(canvas.toDataURL('image/jpeg', 0.95), `${fileName}.jpg`, 'image/jpeg');
@@ -843,6 +1088,7 @@ const validateAllFields = () => {
 const showErrorAlert = () => {
     const errorAlert = document.getElementById('errorAlert');
     if (errorAlert) {
+        errorAlert.textContent = translations[currentLanguage].errorMessage;
         errorAlert.classList.remove('d-none');
         setTimeout(() => errorAlert.classList.add('d-none'), 3000);
     } else {
@@ -904,8 +1150,6 @@ const setupNavigationListeners = () => {
                 showErrorAlert();
             }
         });
-    } else {
-        console.warn('nextToExperience tugmasi topilmadi');
     }
 
     const backToBasic = document.getElementById('backToBasic');
@@ -922,8 +1166,6 @@ const setupNavigationListeners = () => {
                 showErrorAlert();
             }
         });
-    } else {
-        console.warn('nextToEducation tugmasi topilmadi');
     }
 
     const backToExperience = document.getElementById('backToExperience');
@@ -940,8 +1182,6 @@ const setupNavigationListeners = () => {
                 showErrorAlert();
             }
         });
-    } else {
-        console.warn('nextToSkills tugmasi topilmadi');
     }
 
     const backToEducation = document.getElementById('backToEducation');
@@ -958,20 +1198,11 @@ const setupNavigationListeners = () => {
                 showErrorAlert();
             }
         });
-    } else {
-        console.warn('nextToCustomize tugmasi topilmadi');
-    }
-
-    const backToSkills = document.getElementById('backToSkills');
-    if (backToSkills) {
-        backToSkills.addEventListener('click', () => navigateToSection('skills-section'));
     }
 
     const previewCv = document.getElementById('previewCv');
     if (previewCv) {
         previewCv.addEventListener('click', showPreview);
-    } else {
-        console.warn('previewCv tugmasi topilmadi');
     }
 };
 
@@ -1082,45 +1313,46 @@ const setupDynamicFieldListeners = () => {
             }
         });
     }
-
-    document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('remove-experience')) {
-            e.target.closest('.experience-item')?.remove();
-            saveFormData();
-            debouncedUpdatePreview();
-        } else if (e.target.classList.contains('remove-education')) {
-            e.target.closest('.education-item')?.remove();
-            saveFormData();
-            debouncedUpdatePreview();
-        } else if (e.target.classList.contains('remove-skill')) {
-            e.target.closest('.skill-item')?.remove();
-            saveFormData();
-            debouncedUpdatePreview();
-        } else if (e.target.classList.contains('remove-language')) {
-            e.target.closest('.language-item')?.remove();
-            saveFormData();
-            debouncedUpdatePreview();
-        }
-    });
 };
 
-// Dizayn sozlamalari uchun hodisalar
-const setupCustomizationListeners = () => {
+// Hodisa tinglovchilarni sozlash
+const setupEventListeners = () => {
+    const languageSelect = document.getElementById('languageSelect');
+    if (languageSelect) {
+        languageSelect.addEventListener('change', (e) => {
+            currentLanguage = e.target.value;
+            updateLanguage();
+        });
+    }
+
+    const toggleDarkMode = document.getElementById('toggleDarkMode');
+    if (toggleDarkMode) {
+        toggleDarkMode.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            toggleDarkMode.innerHTML = `<i class="fas ${isDarkMode ? 'fa-sun' : 'fa-moon'}"></i>`;
+            saveFormData();
+            updatePreview();
+        });
+    }
+
     const fontFamily = document.getElementById('font-family');
     if (fontFamily) {
         fontFamily.addEventListener('change', (e) => {
             customization.fontFamily = e.target.value;
             applyCustomizations();
             saveFormData();
+            updatePreview();
         });
     }
 
     const fontSize = document.getElementById('font-size');
     if (fontSize) {
         fontSize.addEventListener('input', (e) => {
-            customization.fontSize = parseInt(e.target.value) || 12;
+            customization.fontSize = parseInt(e.target.value);
             applyCustomizations();
             saveFormData();
+            updatePreview();
         });
     }
 
@@ -1130,6 +1362,7 @@ const setupCustomizationListeners = () => {
             customization.fontColor = e.target.value;
             applyCustomizations();
             saveFormData();
+            updatePreview();
         });
     }
 
@@ -1139,6 +1372,7 @@ const setupCustomizationListeners = () => {
             customization.bgColor = e.target.value;
             applyCustomizations();
             saveFormData();
+            updatePreview();
         });
     }
 
@@ -1148,34 +1382,19 @@ const setupCustomizationListeners = () => {
             customization.headerBgColor = e.target.value;
             applyCustomizations();
             saveFormData();
+            updatePreview();
         });
     }
 
-    document.querySelectorAll('.preset-option').forEach(option => {
-        option.addEventListener('click', () => {
-            applyPreset(option.dataset.preset);
-        });
-    });
-};
-
-// Boshqa boshqaruv elementlari uchun hodisalar
-const setupOtherListeners = () => {
-    const languageSelect = document.getElementById('languageSelect');
-    if (languageSelect) {
-        languageSelect.addEventListener('change', (e) => {
-            currentLanguage = e.target.value;
-            updateLanguage();
-            saveFormData();
-        });
-    }
-
-    const toggleDarkMode = document.getElementById('toggleDarkMode');
-    if (toggleDarkMode) {
-        toggleDarkMode.addEventListener('click', () => {
-            isDarkMode = !isDarkMode;
-            document.body.classList.toggle('dark-mode', isDarkMode);
-            toggleDarkMode.innerHTML = isDarkMode ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-            saveFormData();
+    const importPdf = document.getElementById('import-pdf');
+    if (importPdf) {
+        importPdf.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file && file.type === 'application/pdf') {
+                importPdfCv(file);
+            } else {
+                alert(translations[currentLanguage].importError);
+            }
         });
     }
 
@@ -1190,15 +1409,11 @@ const setupOtherListeners = () => {
                     if (cvPhotoPreview) {
                         cvPhotoPreview.src = event.target.result;
                         cvPhotoPreview.style.display = 'block';
-                        if (cvPhotoPreview.nextElementSibling) {
-                            cvPhotoPreview.nextElementSibling.style.display = 'none';
-                        }
                         saveFormData();
+                        updatePreview();
                     }
                 };
                 reader.readAsDataURL(file);
-            } else {
-                alert('Faqat JPG yoki PNG formatdagi rasmlar qabul qilinadi!');
             }
         });
     }
@@ -1217,20 +1432,48 @@ const setupOtherListeners = () => {
     if (downloadPngModal) {
         downloadPngModal.addEventListener('click', () => downloadCv('png'));
     }
-};
 
-// Ilovani ishga tushirish
-document.addEventListener('DOMContentLoaded', () => {
-    loadFormData();
-    setupNavigationListeners();
-    setupDynamicFieldListeners();
-    setupCustomizationListeners();
-    setupOtherListeners();
+    const presetOptions = document.querySelectorAll('.preset-option');
+    if (presetOptions) {
+        presetOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                applyPreset(option.dataset.preset);
+            });
+        });
+    }
 
-    document.querySelectorAll('input, textarea, select').forEach(input => {
+    document.querySelectorAll('.form-control, .form-select').forEach(input => {
         input.addEventListener('input', saveFormData);
         input.addEventListener('input', debouncedUpdatePreview);
     });
 
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-experience')) {
+            e.target.parentElement.remove();
+            saveFormData();
+            updatePreview();
+        } else if (e.target.classList.contains('remove-education')) {
+            e.target.parentElement.remove();
+            saveFormData();
+            updatePreview();
+        } else if (e.target.classList.contains('remove-skill')) {
+            e.target.parentElement.remove();
+            saveFormData();
+            updatePreview();
+        } else if (e.target.classList.contains('remove-language')) {
+            e.target.parentElement.remove();
+            saveFormData();
+            updatePreview();
+        }
+    });
+
+    setupNavigationListeners();
+    setupDynamicFieldListeners();
+};
+
+// Sahifa yuklanganda ishga tushirish
+window.onload = () => {
+    loadFormData();
+    setupEventListeners();
     window.addEventListener('resize', adjustCvScale);
-});
+};
